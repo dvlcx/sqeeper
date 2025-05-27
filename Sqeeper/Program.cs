@@ -12,6 +12,7 @@ class Program
         using var serviceProvider = services.BuildServiceProvider();
         ConsoleApp.ServiceProvider = serviceProvider;
 
-        ConsoleApp.Run(args, (string name) => Console.WriteLine($"Hello, {name}!"));
+        var app = ConsoleApp.Create();
+        app.Run(args);
     }
 }
