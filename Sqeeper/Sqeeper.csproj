@@ -15,6 +15,7 @@
     </PackageReference>
     <PackageReference Include="Tomlyn" Version="0.19.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
+    <PackageReference Include="ZLogger" Version="2.5.10" />
   </ItemGroup>
 
 </Project>
