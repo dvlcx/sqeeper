@@ -13,9 +13,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Tomlyn" Version="0.19.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
     <PackageReference Include="ZLogger" Version="2.5.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="9.0.5" />
   </ItemGroup>
 
 </Project>
