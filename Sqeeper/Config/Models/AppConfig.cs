@@ -15,11 +15,12 @@ namespace Sqeeper.Config
         {
             Name = name;
             Type = type;
+            Url = url;
             Path = path;
             Query = query;
             KeepOld = keepOld;
             IsGithub = isGithub;
-            postScript = PostScript;
+            PostScript = postScript;
         }
     }
 }
