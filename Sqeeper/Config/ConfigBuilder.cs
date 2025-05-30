@@ -36,20 +36,21 @@ namespace Sqeeper.Config
             return this;
         }
 
-        public List<AppConfig> Build()
+        //there is 
+        public Queue<AppConfig> Build()
         {
             try
             {
-                List<AppConfig> result = [];
+                Queue<AppConfig> result = [];
 
                 if (_appsConfig is null)
                     return result;
 
+                int counter = 0;
                 foreach (var app in _appsConfig)
                 {
                     var opts = app.GetChildren();
 
-                    // filter param. not required
                     var group = SettingOrDefault(null, "group");
                     var appGroupDefs = _groupsConfig?.FirstOrDefault(x => x.Key == group)?.GetChildren();
 
@@ -71,7 +72,7 @@ namespace Sqeeper.Config
                     var query = SettingOrDefault(appGroupDefs, "query")?.Split(';');
                     var postScript = SettingOrDefault(appGroupDefs, "postScript");
 
-                    result.Add(new AppConfig(name, group, url!, path!, query, keepOld, isGithub, postScript));
+                    result.Enqueue(new AppConfig(name, url!, path!, query, keepOld, isGithub, postScript));
                 }
 
                 return result;
