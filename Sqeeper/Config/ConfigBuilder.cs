@@ -46,7 +46,6 @@ namespace Sqeeper.Config
                 if (_appsConfig is null)
                     return result;
 
-                int counter = 0;
                 foreach (var app in _appsConfig)
                 {
                     var opts = app.GetChildren();
@@ -67,7 +66,6 @@ namespace Sqeeper.Config
                     //required params with default values
                     var keepOld = bool.TryParse(SettingOrDefault(appGroupDefs, "keepOld"), out var ko) ? ko : true;
                     var isGithub = bool.TryParse(SettingOrDefault(appGroupDefs, "isGithub"), out var ig) ? ig : false;
-
                     //optional params
                     var query = SettingOrDefault(appGroupDefs, "query")?.Split(';');
                     var postScript = SettingOrDefault(appGroupDefs, "postScript");
