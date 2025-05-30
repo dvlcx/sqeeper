@@ -25,7 +25,7 @@ class Program
         var services = new ServiceCollection();
         services.AddSingleton(appConfigs);
         services.AddLogging(logger => GetLoggingBuilder(logger));
-        services.AddSingleton<IMainConfig>(appConfigs);
+        services.AddSingleton<IConfigQueue>(appConfigs);
         using var serviceProvider = services.BuildServiceProvider();
         ConsoleApp.ServiceProvider = serviceProvider;
         var app = ConsoleApp.Create();

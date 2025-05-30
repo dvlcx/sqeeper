@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Sqeeper.Config.Models
 {
-    public interface IMainConfig
+    public interface IConfigQueue
     {
         public AppConfig Dequeue();
         public int Count { get; }

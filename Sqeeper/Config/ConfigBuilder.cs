@@ -38,14 +38,14 @@ namespace Sqeeper.Config
         }
 
         //there is 
-        public MainConfig Build()
+        public ConfigQueue Build()
         {
             try
             {
                 Queue<AppConfig> result = [];
 
                 if (_appsConfig is null)
-                    return new MainConfig(result);
+                    return new ConfigQueue(result);
 
                 foreach (var app in _appsConfig)
                 {
@@ -74,7 +74,7 @@ namespace Sqeeper.Config
                     result.Enqueue(new AppConfig(name, url!, path!, query, keepOld, isGithub, postScript));
                 }
 
-                return new MainConfig(result);
+                return new ConfigQueue(result);
             }
             catch (Exception e)
             {
