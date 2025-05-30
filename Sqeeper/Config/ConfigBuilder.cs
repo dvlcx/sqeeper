@@ -59,7 +59,7 @@ namespace Sqeeper.Config
                     var path = SettingOrDefault(appGroupDefs, "path");
                     if (!CheckRequired([name, url, path], [nameof(name), nameof(url), nameof(path)]))
                     {
-                        _logger.LogError($"App \"{name}\" skipped. Not enough params.");
+                        _logger.ZLogError($"App \"{name}\" skipped. Not enough params.");
                         continue;
                     }
 
@@ -95,7 +95,7 @@ namespace Sqeeper.Config
             for (int i = 0; i < parameters.Length; i++)
                 if (parameters[i] is null)
                 {
-                    _logger.LogError($"App \"{parameters[0]}\" has required parameter \"{parameterNames[i]}\" missing.");
+                    _logger.ZLogError($"App \"{parameters[0]}\" has required parameter \"{parameterNames[i]}\" missing.");
                     result = true;
                 }
             return result;
