@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Sqeeper.Config;
+using Sqeeper.Config.Models;
 using ZLogger;
 
 namespace Sqeeper;
@@ -24,7 +25,7 @@ class Program
         var services = new ServiceCollection();
         services.AddSingleton(appConfigs);
         services.AddLogging(logger => GetLoggingBuilder(logger));
-        services.AddSingleton(appConfigs);
+        services.AddSingleton<IMainConfig>(appConfigs);
         using var serviceProvider = services.BuildServiceProvider();
         ConsoleApp.ServiceProvider = serviceProvider;
         var app = ConsoleApp.Create();

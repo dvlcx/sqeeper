@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Sqeeper.Config.Models;
 using ZLogger;
 
 namespace Sqeeper.Config
@@ -37,14 +38,14 @@ namespace Sqeeper.Config
         }
 
         //there is 
-        public Queue<AppConfig> Build()
+        public MainConfig Build()
         {
             try
             {
                 Queue<AppConfig> result = [];
 
                 if (_appsConfig is null)
-                    return result;
+                    return new MainConfig(result);
 
                 foreach (var app in _appsConfig)
                 {
@@ -73,7 +74,7 @@ namespace Sqeeper.Config
                     result.Enqueue(new AppConfig(name, url!, path!, query, keepOld, isGithub, postScript));
                 }
 
-                return result;
+                return new MainConfig(result);
             }
             catch (Exception e)
             {
