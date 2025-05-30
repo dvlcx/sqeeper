@@ -16,17 +16,15 @@ class Program
         {
         }
 
-        List<AppConfig> appConfigs = new ConfigBuilder(
-            new ConfigurationBuilder()
-            .AddIniFile(_configPath, false, false)
-            .Build(),
+        var appConfigs = new ConfigBuilder(
+            new ConfigurationBuilder().AddIniFile(_configPath, false, false).Build(),
             LoggerFactory.Create(logging => GetLoggingBuilder(logging)).CreateLogger<ConfigBuilder>())
             .IncludeApps().IncludeDefaults().IncludeGroupDefaults().Build();
 
         var services = new ServiceCollection();
         services.AddSingleton(appConfigs);
         services.AddLogging(logger => GetLoggingBuilder(logger));
-        services.AddSingleton<List<AppConfig>>(appConfigs);
+        services.AddSingleton(appConfigs);
         using var serviceProvider = services.BuildServiceProvider();
         ConsoleApp.ServiceProvider = serviceProvider;
         var app = ConsoleApp.Create();
