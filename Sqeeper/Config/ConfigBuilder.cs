@@ -42,10 +42,10 @@ namespace Sqeeper.Config
         {
             try
             {
-                Queue<AppConfig> result = [];
+                List<AppConfig> result = [];
 
                 if (_appsConfig is null)
-                    return new ConfigQueue(result);
+                    return new ConfigQueue([]);
 
                 foreach (var app in _appsConfig)
                 {
@@ -71,10 +71,10 @@ namespace Sqeeper.Config
                     var query = SettingOrDefault(appGroupDefs, "query")?.Split(';');
                     var postScript = SettingOrDefault(appGroupDefs, "postScript");
 
-                    result.Enqueue(new AppConfig(name, url!, path!, query, keepOld, isGithub, postScript));
+                    result.Add(new AppConfig(name, url!, path!, query, keepOld, isGithub, postScript));
                 }
 
-                return new ConfigQueue(result);
+                return new ConfigQueue(result.ToArray());
             }
             catch (Exception e)
             {

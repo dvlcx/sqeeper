@@ -7,15 +7,15 @@ namespace Sqeeper.Config.Models
 {
     public class ConfigQueue : IConfigQueue
     {
-        public int Count { get => _appConfigs.Count; }
-        private Queue<AppConfig> _appConfigs;
+        public int Length { get => _appConfigs.Length; }
+        private AppConfig[] _appConfigs;
 
-        public ConfigQueue(Queue<AppConfig> appConfigs)
+        public ConfigQueue(AppConfig[] appConfigs)
         {
             _appConfigs = appConfigs;
         }
 
-        public AppConfig Dequeue() =>
-            _appConfigs.Dequeue();
+        public AppConfig Get(int index) =>
+            _appConfigs[index];
     }
 }

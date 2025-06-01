@@ -7,7 +7,7 @@ namespace Sqeeper.Config.Models
 {
     public interface IConfigQueue
     {
-        public AppConfig Dequeue();
-        public int Count { get; }
+        public AppConfig Get(int index);
+        public int Length { get; }
     }
 }
