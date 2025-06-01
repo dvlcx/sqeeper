@@ -10,7 +10,7 @@ namespace Sqeeper.Core
 {
     public class UpdaterService
     {
-        private IConfigQueue _config;
+        private IConfigArray _config;
         private ILogger<UpdaterService> _logger;
 
         public UpdaterService()
