@@ -81,7 +81,17 @@ namespace Sqeeper.Config
             //required params without default values
             var name = appSection.Key;
             var url = SettingOrDefault(appSection, appGroupDefs, "url");
+            if (url is not null && !ValidateUrl(url))
+            {
+                _logger.ZLogError($"App \"{name}\" has url parameter that is invalid as a url.");
+                url = null;
+            }
             var path = SettingOrDefault(appSection, appGroupDefs, "path");
+            if (path is not null && !ValidatePath(path))
+            {
+                _logger.ZLogError($"App \"{name}\" has path parameter that is invalid as a path.");
+                path = null;
+            }
             if (!CheckRequired([name, url, path], [nameof(name), nameof(url), nameof(path)]))
             {
                 _logger.ZLogError($"App \"{name}\" skipped. Not enough params.");
@@ -105,6 +115,13 @@ namespace Sqeeper.Config
             appSection.GetChildren().FirstOrDefault(o => o.Key == settingName)?.Value ??
             groupSection?.FirstOrDefault(o => o.Key == settingName)?.Value ??
             _defaults?.FirstOrDefault(o => o.Key == settingName)?.Value;
+
+        private bool ValidateUrl(string url) =>
+            Uri.TryCreate(url, UriKind.Absolute, out var uriResult);
+
+
+        private bool ValidatePath(string path) =>
+            Directory.Exists(path);
 
         private bool CheckRequired(string?[] parameters, string[] parameterNames)
         {
