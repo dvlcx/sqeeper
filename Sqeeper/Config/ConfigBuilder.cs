@@ -24,20 +24,24 @@ namespace Sqeeper.Config
             _appsConfig = SectionsChildrenOrDefault("app");
             return this;
         }
-
+        public ConfigBuilder IncludeApp(string appName)
+        {
+            _appsConfig = SectionsChildrenOrDefault("app." + appName);
+            return this;
+        }
+        
         public ConfigBuilder IncludeDefaults()
         {
             _defaults = SectionsChildrenOrDefault("default");
-            return this;   
+            return this;
         }
 
         public ConfigBuilder IncludeGroupDefaults()
         {
-            _defaults = SectionsChildrenOrDefault("group");
+            _groupsConfig = SectionsChildrenOrDefault("group");
             return this;
         }
 
-        //there is 
         public ConfigQueue Build()
         {
             try
@@ -51,13 +55,13 @@ namespace Sqeeper.Config
                 {
                     var opts = app.GetChildren();
 
-                    var group = SettingOrDefault(null, "group");
+                    var group = SettingOrDefault(app, null, "group");
                     var appGroupDefs = _groupsConfig?.FirstOrDefault(x => x.Key == group)?.GetChildren();
 
                     //required params without default values
                     var name = app.Key;
-                    var url = SettingOrDefault(appGroupDefs, "url");
-                    var path = SettingOrDefault(appGroupDefs, "path");
+                    var url = SettingOrDefault(app, appGroupDefs, "url");
+                    var path = SettingOrDefault(app, appGroupDefs, "path");
                     if (!CheckRequired([name, url, path], [nameof(name), nameof(url), nameof(path)]))
                     {
                         _logger.ZLogError($"App \"{name}\" skipped. Not enough params.");
@@ -65,11 +69,11 @@ namespace Sqeeper.Config
                     }
 
                     //required params with default values
-                    var keepOld = bool.TryParse(SettingOrDefault(appGroupDefs, "keepOld"), out var ko) ? ko : true;
-                    var isGithub = bool.TryParse(SettingOrDefault(appGroupDefs, "isGithub"), out var ig) ? ig : false;
+                    var keepOld = bool.TryParse(SettingOrDefault(app,appGroupDefs, "keepOld"), out var ko) ? ko : true;
+                    var isGithub = bool.TryParse(SettingOrDefault(app,appGroupDefs, "isGithub"), out var ig) ? ig : false;
                     //optional params
-                    var query = SettingOrDefault(appGroupDefs, "query")?.Split(';');
-                    var postScript = SettingOrDefault(appGroupDefs, "postScript");
+                    var query = SettingOrDefault(app,appGroupDefs, "query")?.Split(';');
+                    var postScript = SettingOrDefault(app, appGroupDefs, "postScript");
 
                     result.Add(new AppConfig(name, url!, path!, query, keepOld, isGithub, postScript));
                 }
@@ -83,21 +87,21 @@ namespace Sqeeper.Config
         }
 
         private IEnumerable<IConfigurationSection>? SectionsChildrenOrDefault(string sectionName) =>
-            _defaults = _baseConfig.GetSection(sectionName) is var section && section.Exists() ? section.GetChildren() : null;
+            _baseConfig.GetSection(sectionName) is var section && section.Exists() ? section.GetChildren() : null;
     
-        private string? SettingOrDefault(IEnumerable<IConfigurationSection>? groupSection, string settingName) =>
-            _appsConfig?.FirstOrDefault(o => o.Key == settingName)?.Value ??
+        private string? SettingOrDefault(IConfigurationSection appSection, IEnumerable<IConfigurationSection>? groupSection, string settingName) =>
+            appSection.GetChildren().FirstOrDefault(o => o.Key == settingName)?.Value ??
             groupSection?.FirstOrDefault(o => o.Key == settingName)?.Value ??
             _defaults?.FirstOrDefault(o => o.Key == settingName)?.Value;
 
         private bool CheckRequired(string?[] parameters, string[] parameterNames)
         {
-            bool result = false;
+            bool result = true;
             for (int i = 0; i < parameters.Length; i++)
                 if (parameters[i] is null)
                 {
                     _logger.ZLogError($"App \"{parameters[0]}\" has required parameter \"{parameterNames[i]}\" missing.");
-                    result = true;
+                    result = false;
                 }
             return result;
         }
