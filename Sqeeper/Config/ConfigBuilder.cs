@@ -21,64 +21,49 @@ namespace Sqeeper.Config
 
         public ConfigBuilder IncludeApps()
         {
-            _appsConfig = SectionsChildrenOrDefault("app");
+            _appsConfig = SectionOrDefault("app")?.GetChildren();
             return this;
         }
         public ConfigBuilder IncludeApp(string appName)
         {
-            _appsConfig = SectionsChildrenOrDefault("app." + appName);
+            var section = SectionOrDefault("app:" + appName);
+            _appsConfig = section is null ? null : [section];
             return this;
         }
         
         public ConfigBuilder IncludeDefaults()
         {
-            _defaults = SectionsChildrenOrDefault("default");
+            _defaults = SectionOrDefault("default")?.GetChildren();
             return this;
         }
 
         public ConfigBuilder IncludeGroupDefaults()
         {
-            _groupsConfig = SectionsChildrenOrDefault("group");
+            _groupsConfig = SectionOrDefault("group")?.GetChildren();
             return this;
         }
 
-        public ConfigQueue Build()
+        public ConfigArray Build()
         {
             try
             {
                 List<AppConfig> result = [];
 
                 if (_appsConfig is null)
-                    return new ConfigQueue([]);
+                {
+                    _logger.ZLogError($"No apps found in config.");
+                    return new ConfigArray([]);
+                }
 
                 foreach (var app in _appsConfig)
                 {
-                    var opts = app.GetChildren();
-
-                    var group = SettingOrDefault(app, null, "group");
-                    var appGroupDefs = _groupsConfig?.FirstOrDefault(x => x.Key == group)?.GetChildren();
-
-                    //required params without default values
-                    var name = app.Key;
-                    var url = SettingOrDefault(app, appGroupDefs, "url");
-                    var path = SettingOrDefault(app, appGroupDefs, "path");
-                    if (!CheckRequired([name, url, path], [nameof(name), nameof(url), nameof(path)]))
-                    {
-                        _logger.ZLogError($"App \"{name}\" skipped. Not enough params.");
+                    var appConfig = ComposeAppConfig(app);
+                    if (appConfig is null)
                         continue;
-                    }
-
-                    //required params with default values
-                    var keepOld = bool.TryParse(SettingOrDefault(app,appGroupDefs, "keepOld"), out var ko) ? ko : true;
-                    var isGithub = bool.TryParse(SettingOrDefault(app,appGroupDefs, "isGithub"), out var ig) ? ig : false;
-                    //optional params
-                    var query = SettingOrDefault(app,appGroupDefs, "query")?.Split(';');
-                    var postScript = SettingOrDefault(app, appGroupDefs, "postScript");
-
-                    result.Add(new AppConfig(name, url!, path!, query, keepOld, isGithub, postScript));
+                    result.Add(appConfig);
                 }
 
-                return new ConfigQueue(result.ToArray());
+                return new ConfigArray(result.ToArray());
             }
             catch (Exception e)
             {
@@ -86,8 +71,35 @@ namespace Sqeeper.Config
             }
         }
 
-        private IEnumerable<IConfigurationSection>? SectionsChildrenOrDefault(string sectionName) =>
-            _baseConfig.GetSection(sectionName) is var section && section.Exists() ? section.GetChildren() : null;
+        private AppConfig? ComposeAppConfig(IConfigurationSection appSection)
+        {
+            var opts = appSection.GetChildren();
+
+            var group = SettingOrDefault(appSection, null, "group");
+            var appGroupDefs = _groupsConfig?.FirstOrDefault(x => x.Key == group)?.GetChildren();
+
+            //required params without default values
+            var name = appSection.Key;
+            var url = SettingOrDefault(appSection, appGroupDefs, "url");
+            var path = SettingOrDefault(appSection, appGroupDefs, "path");
+            if (!CheckRequired([name, url, path], [nameof(name), nameof(url), nameof(path)]))
+            {
+                _logger.ZLogError($"App \"{name}\" skipped. Not enough params.");
+                return null;
+            }
+
+            //required params with default values
+            var keepOld = bool.TryParse(SettingOrDefault(appSection,appGroupDefs, "keepOld"), out var ko) ? ko : true;
+            var isGithub = bool.TryParse(SettingOrDefault(appSection,appGroupDefs, "isGithub"), out var ig) ? ig : false;
+            //optional params
+            var query = SettingOrDefault(appSection,appGroupDefs, "query")?.Split(';');
+            var postScript = SettingOrDefault(appSection, appGroupDefs, "postScript");
+
+            return new AppConfig(name, url!, path!, query, keepOld, isGithub, postScript);
+        }
+
+        private IConfigurationSection? SectionOrDefault(string sectionName) =>
+            _baseConfig.GetSection(sectionName) is var section && section.Exists() ? section : null;
     
         private string? SettingOrDefault(IConfigurationSection appSection, IEnumerable<IConfigurationSection>? groupSection, string settingName) =>
             appSection.GetChildren().FirstOrDefault(o => o.Key == settingName)?.Value ??

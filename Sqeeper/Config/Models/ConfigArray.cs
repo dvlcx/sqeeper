@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 namespace Sqeeper.Config.Models
 {
-    public class ConfigQueue : IConfigArray
+    public class ConfigArray : IConfigArray
     {
         public int Length { get => _appConfigs.Length; }
         private AppConfig[] _appConfigs;
 
-        public ConfigQueue(AppConfig[] appConfigs)
+        public ConfigArray(AppConfig[] appConfigs)
         {
             _appConfigs = appConfigs;
         }
