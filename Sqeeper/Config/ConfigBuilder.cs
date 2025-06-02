@@ -117,7 +117,7 @@ namespace Sqeeper.Config
             _defaults?.FirstOrDefault(o => o.Key == settingName)?.Value;
 
         private bool ValidateUrl(string url) =>
-            Uri.TryCreate(url, UriKind.Absolute, out var uriResult);
+            Uri.TryCreate(url, UriKind.Absolute, out _);
 
         private bool ValidatePath(string path) =>
             Directory.Exists(path.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
