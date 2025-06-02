@@ -119,9 +119,8 @@ namespace Sqeeper.Config
         private bool ValidateUrl(string url) =>
             Uri.TryCreate(url, UriKind.Absolute, out var uriResult);
 
-
         private bool ValidatePath(string path) =>
-            Directory.Exists(path);
+            Directory.Exists(path.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
 
         private bool CheckRequired(string?[] parameters, string[] parameterNames)
         {
