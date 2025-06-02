@@ -73,20 +73,20 @@ namespace Sqeeper.Config
 
         private AppConfig? ComposeAppConfig(IConfigurationSection appSection)
         {
-            var opts = appSection.GetChildren();
+            var opts = appSection.GetChildren().ToArray();
 
-            var group = SettingOrDefault(appSection, null, "group");
-            var appGroupDefs = _groupsConfig?.FirstOrDefault(x => x.Key == group)?.GetChildren();
+            var group = SettingOrDefault(opts, null, "group");
+            var appGroupDefs = _groupsConfig?.FirstOrDefault(x => x.Key == group)?.GetChildren().ToArray();
 
             //required params without default values
             var name = appSection.Key;
-            var url = SettingOrDefault(appSection, appGroupDefs, "url");
+            var url = SettingOrDefault(opts, appGroupDefs, "url");
             if (url is not null && !ValidateUrl(url))
             {
                 _logger.ZLogError($"App \"{name}\" has url parameter that is invalid as a url.");
                 url = null;
             }
-            var path = SettingOrDefault(appSection, appGroupDefs, "path");
+            var path = SettingOrDefault(opts, appGroupDefs, "path");
             if (path is not null && !ValidatePath(path))
             {
                 _logger.ZLogError($"App \"{name}\" has path parameter that is invalid as a path.");
@@ -99,11 +99,11 @@ namespace Sqeeper.Config
             }
 
             //required params with default values
-            var keepOld = bool.TryParse(SettingOrDefault(appSection,appGroupDefs, "keepOld"), out var ko) ? ko : true;
-            var isGithub = bool.TryParse(SettingOrDefault(appSection,appGroupDefs, "isGithub"), out var ig) ? ig : false;
+            var keepOld = bool.TryParse(SettingOrDefault(opts, appGroupDefs, "keepOld"), out var ko) ? ko : true;
+            var isGithub = bool.TryParse(SettingOrDefault(opts, appGroupDefs, "isGithub"), out var ig) ? ig : false;
             //optional params
-            var query = SettingOrDefault(appSection,appGroupDefs, "query")?.Split(';');
-            var postScript = SettingOrDefault(appSection, appGroupDefs, "postScript");
+            var query = SettingOrDefault(opts, appGroupDefs, "query")?.Split(';');
+            var postScript = SettingOrDefault(opts, appGroupDefs, "postScript");
 
             return new AppConfig(name, url!, path!, query, keepOld, isGithub, postScript);
         }
@@ -111,8 +111,8 @@ namespace Sqeeper.Config
         private IConfigurationSection? SectionOrDefault(string sectionName) =>
             _baseConfig.GetSection(sectionName) is var section && section.Exists() ? section : null;
     
-        private string? SettingOrDefault(IConfigurationSection appSection, IEnumerable<IConfigurationSection>? groupSection, string settingName) =>
-            appSection.GetChildren().FirstOrDefault(o => o.Key == settingName)?.Value ??
+        private string? SettingOrDefault(IConfigurationSection[] appSection, IConfigurationSection[]? groupSection, string settingName) =>
+            appSection.FirstOrDefault(o => o.Key == settingName)?.Value ??
             groupSection?.FirstOrDefault(o => o.Key == settingName)?.Value ??
             _defaults?.FirstOrDefault(o => o.Key == settingName)?.Value;
 
