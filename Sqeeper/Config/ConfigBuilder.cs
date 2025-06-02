@@ -7,11 +7,11 @@ namespace Sqeeper.Config
 {
     public class ConfigBuilder
     {
-        private ILogger<ConfigBuilder> _logger;
-        private IConfiguration _baseConfig;
-        private IEnumerable<IConfigurationSection>? _defaults = default;
-        private IEnumerable<IConfigurationSection>? _groupsConfig = default;
-        private IEnumerable<IConfigurationSection>? _appsConfig = default;
+        private readonly ILogger<ConfigBuilder> _logger;
+        private readonly IConfiguration _baseConfig;
+        private IConfigurationSection[]? _defaults;
+        private IConfigurationSection[]? _groupsConfig;
+        private IConfigurationSection[]? _appsConfig;
 
         public ConfigBuilder(IConfiguration baseConfig, ILogger<ConfigBuilder> logger)
         {
@@ -21,7 +21,7 @@ namespace Sqeeper.Config
 
         public ConfigBuilder IncludeApps()
         {
-            _appsConfig = SectionOrDefault("app")?.GetChildren();
+            _appsConfig = SectionOrDefault("app")?.GetChildren().ToArray();
             return this;
         }
         public ConfigBuilder IncludeApp(string appName)
@@ -33,13 +33,13 @@ namespace Sqeeper.Config
         
         public ConfigBuilder IncludeDefaults()
         {
-            _defaults = SectionOrDefault("default")?.GetChildren();
+            _defaults = SectionOrDefault("default")?.GetChildren().ToArray();
             return this;
         }
 
         public ConfigBuilder IncludeGroupDefaults()
         {
-            _groupsConfig = SectionOrDefault("group")?.GetChildren();
+            _groupsConfig = SectionOrDefault("group")?.GetChildren().ToArray();
             return this;
         }
 
