@@ -80,21 +80,14 @@ namespace Sqeeper.Config
 
             //required params without default values
             var name = appSection.Key;
+            var version = SettingOrDefault(opts, appGroupDefs, "version");
             var url = SettingOrDefault(opts, appGroupDefs, "url");
-            if (url is not null && !ValidateUrl(url))
-            {
-                _logger.ZLogError($"App \"{name}\" has url parameter that is invalid as a url.");
-                url = null;
-            }
+            ValidateParam(name, ref url, nameof(url), ValidatePath);
             var path = SettingOrDefault(opts, appGroupDefs, "path");
-            if (path is not null && !ValidatePath(path))
+            ValidateParam(name, ref path, nameof(path), ValidatePath);
+            if (!CheckRequired([name, version, url, path], [nameof(name), nameof(version), nameof(url), nameof(path)]))
             {
-                _logger.ZLogError($"App \"{name}\" has path parameter that is invalid as a path.");
-                path = null;
-            }
-            if (!CheckRequired([name, url, path], [nameof(name), nameof(url), nameof(path)]))
-            {
-                _logger.ZLogError($"App \"{name}\" skipped. Not enough params.");
+                _logger.ZLogError($"\"{name}\" skipped. Not enough params.");
                 return null;
             }
 
@@ -102,10 +95,10 @@ namespace Sqeeper.Config
             var keepOld = bool.TryParse(SettingOrDefault(opts, appGroupDefs, "keepOld"), out var ko) ? ko : true;
             var isGithub = bool.TryParse(SettingOrDefault(opts, appGroupDefs, "isGithub"), out var ig) ? ig : false;
             //optional params
-            var query = SettingOrDefault(opts, appGroupDefs, "query")?.Split(';');
+            var query = SettingOrDefault(opts, appGroupDefs, "query")?.Split(',');
             var postScript = SettingOrDefault(opts, appGroupDefs, "postScript");
 
-            return new AppConfig(name, url!, path!, query, keepOld, isGithub, postScript);
+            return new AppConfig(name, version!, url!, path!, query, keepOld, isGithub, postScript);
         }
 
         private IConfigurationSection? SectionOrDefault(string sectionName) =>
@@ -116,6 +109,15 @@ namespace Sqeeper.Config
             groupSection?.FirstOrDefault(o => o.Key == settingName)?.Value ??
             _defaults?.FirstOrDefault(o => o.Key == settingName)?.Value;
 
+        private void ValidateParam(string appName, ref string? param, string paramName, Func<string, bool> validator)
+        {
+            if (param is not null && !validator(param))
+            {
+                _logger.ZLogError($"\"{appName}\"'s {paramName} is invalid.");
+                param = null;
+            }
+        }
+        
         private bool ValidateUrl(string url) =>
             Uri.TryCreate(url, UriKind.Absolute, out _);
 
@@ -128,7 +130,7 @@ namespace Sqeeper.Config
             for (int i = 0; i < parameters.Length; i++)
                 if (parameters[i] is null)
                 {
-                    _logger.ZLogError($"App \"{parameters[0]}\" has required parameter \"{parameterNames[i]}\" missing.");
+                    _logger.ZLogError($"App \"{parameters[0]}\" has required parameter \"{parameterNames[i]}\" missing/invalid.");
                     result = false;
                 }
             return result;
