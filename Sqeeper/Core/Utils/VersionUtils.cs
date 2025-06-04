@@ -27,4 +27,16 @@ public static class VersionUtils
         }
         return false;
     }
+
+    public static string GetMaxVersion(string[] versions)
+    {
+        var maxVersion = versions[0];
+        for (var i = 1; i < versions.Length; i++)
+        {
+            if (IsNewerVersion(maxVersion, versions[i]))
+                maxVersion = versions[i];
+        }
+        
+        return maxVersion;
+    }
 }
