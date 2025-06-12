@@ -82,7 +82,7 @@ namespace Sqeeper.Config
             var name = appSection.Key;
             var version = SettingOrDefault(opts, appGroupDefs, "version");
             var url = SettingOrDefault(opts, appGroupDefs, "url");
-            ValidateParam(name, ref url, nameof(url), ValidatePath);
+            ValidateParam(name, ref url, nameof(url), ValidateUrl);
             var path = SettingOrDefault(opts, appGroupDefs, "path");
             ValidateParam(name, ref path, nameof(path), ValidatePath);
             if (!CheckRequired([name, version, url, path], [nameof(name), nameof(version), nameof(url), nameof(path)]))
@@ -94,8 +94,9 @@ namespace Sqeeper.Config
             //required params with default values
             var keepOld = bool.TryParse(SettingOrDefault(opts, appGroupDefs, "keepOld"), out var ko) ? ko : true;
             var isGithub = bool.TryParse(SettingOrDefault(opts, appGroupDefs, "isGithub"), out var ig) ? ig : false;
+            
             //optional params
-            var query = SettingOrDefault(opts, appGroupDefs, "query")?.Split(',');
+            var query = SettingOrDefault(opts, appGroupDefs, "query")?.Split(',') ?? [];
             var postScript = SettingOrDefault(opts, appGroupDefs, "postScript");
 
             return new AppConfig(name, version!, url!, path!, query, keepOld, isGithub, postScript);
@@ -113,7 +114,7 @@ namespace Sqeeper.Config
         {
             if (param is not null && !validator(param))
             {
-                _logger.ZLogError($"\"{appName}\"'s {paramName} is invalid.");
+                _logger.ZLogError($"\"{appName}\" {paramName} is invalid.");
                 param = null;
             }
         }
