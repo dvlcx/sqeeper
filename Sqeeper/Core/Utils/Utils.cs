@@ -2,13 +2,20 @@ using System.Text.RegularExpressions;
 
 namespace Sqeeper.Core.Utils;
 
-public static class VersionUtils
+public static class Utils
 {
     public static string? TryExtractVersion(string line)
     {
         var regex = new Regex(@"([0-9]\d*(\.[0-9]\d*)*)");
         var match = regex.Match(line);
         return match.Success ? match.Groups[1].Value : null;
+    }
+    
+    public static string? TryExtractHref(string line)
+    {
+        var regex = new Regex(@"<a\s+(?:[^>]*?\s+)?href=([""'])(.*?)\1");
+        var match = regex.Match(line);
+        return match.Success ? match.Groups[2].Value : null;
     }
 
     public static bool IsNewerVersion(string currentVersion, string foundVersion)
@@ -28,15 +35,20 @@ public static class VersionUtils
         return false;
     }
 
-    public static string GetMaxVersion(string[] versions)
+    public static string[] GetLinesWithMaxVersions(string[] lines)
     {
-        var maxVersion = versions[0];
-        for (var i = 1; i < versions.Length; i++)
+        var maxVersion = TryExtractVersion(lines[0]);
+        for (var i = 1; i < lines.Length; i++)
         {
-            if (IsNewerVersion(maxVersion, versions[i]))
-                maxVersion = versions[i];
+            var version = TryExtractVersion(lines[i]);
+            if (maxVersion is null)
+                maxVersion = version;
+            else if (version is null)
+                continue;
+            else if (IsNewerVersion(maxVersion, version))
+                maxVersion = version;
         }
         
-        return maxVersion;
+        return lines.Where(x => x.Contains(maxVersion)).ToArray();
     }
 }
