@@ -81,11 +81,12 @@ namespace Sqeeper.Config
             //required params without default values
             var name = appSection.Key;
             var version = SettingOrDefault(opts, appGroupDefs, "version");
-            var url = SettingOrDefault(opts, appGroupDefs, "url");
-            ValidateParam(name, ref url, nameof(url), ValidateUrl);
+            var url = SettingOrDefault(opts, appGroupDefs, "url"); 
             var path = SettingOrDefault(opts, appGroupDefs, "path");
-            ValidateParam(name, ref path, nameof(path), ValidatePath);
-            if (!CheckRequired([name, version, url, path], [nameof(name), nameof(version), nameof(url), nameof(path)]))
+            var sourceType = SettingOrDefault(opts, appGroupDefs, "sourceType");
+            if (ValidateParam(name, url, nameof(url), ValidateUrl) |
+                ValidateParam(name, path, nameof(path), ValidatePath) |
+                ValidateParam<UpdateSource>(name, sourceType, nameof(path), ValidateSourceType, out var st))
             {
                 _logger.ZLogError($"\"{name}\" skipped. Not enough params.");
                 return null;
@@ -93,13 +94,13 @@ namespace Sqeeper.Config
 
             //required params with default values
             var keepOld = bool.TryParse(SettingOrDefault(opts, appGroupDefs, "keepOld"), out var ko) ? ko : true;
-            var isGithub = bool.TryParse(SettingOrDefault(opts, appGroupDefs, "isGithub"), out var ig) ? ig : false;
             
             //optional params
             var query = SettingOrDefault(opts, appGroupDefs, "query")?.Split(',') ?? [];
+            var antiQuery = SettingOrDefault(opts, appGroupDefs, "antiQuery")?.Split(',') ?? [];
             var postScript = SettingOrDefault(opts, appGroupDefs, "postScript");
-
-            return new AppConfig(name, version!, url!, path!, query, keepOld, isGithub, postScript);
+            
+            return new AppConfig(name, version!, url!, path!, query, antiQuery, keepOld, st, postScript);
         }
 
         private IConfigurationSection? SectionOrDefault(string sectionName) =>
@@ -109,15 +110,28 @@ namespace Sqeeper.Config
             appSection.FirstOrDefault(o => o.Key == settingName)?.Value ??
             groupSection?.FirstOrDefault(o => o.Key == settingName)?.Value ??
             _defaults?.FirstOrDefault(o => o.Key == settingName)?.Value;
-
-        private void ValidateParam(string appName, ref string? param, string paramName, Func<string, bool> validator)
+        
+        private delegate T3 Func<in T1, T2, out T3>(T1 input, out T2 output);
+        private bool ValidateParam<T>(string appName, string? param, string paramName,Func<string, T, bool> validator, out T? result)
         {
-            if (param is not null && !validator(param))
+            result = default;
+    
+            if (param is null)
+            {
+                _logger.ZLogError($"\"{appName}\" {paramName} is missing.");
+                return false;
+            }
+            if (!validator(param, out result))
             {
                 _logger.ZLogError($"\"{appName}\" {paramName} is invalid.");
-                param = null;
+                return false;
             }
+    
+            return true;
         }
+
+        private bool ValidateParam(string appName, string? param, string paramName, Func<string, bool> validator) =>
+            ValidateParam<bool>(appName, param, paramName, (string input, out bool output) => (output = validator(input)), out _);
         
         private bool ValidateUrl(string url) =>
             Uri.TryCreate(url, UriKind.Absolute, out _);
@@ -125,16 +139,7 @@ namespace Sqeeper.Config
         private bool ValidatePath(string path) =>
             Directory.Exists(path.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
 
-        private bool CheckRequired(string?[] parameters, string[] parameterNames)
-        {
-            bool result = true;
-            for (int i = 0; i < parameters.Length; i++)
-                if (parameters[i] is null)
-                {
-                    _logger.ZLogError($"App \"{parameters[0]}\" has required parameter \"{parameterNames[i]}\" missing/invalid.");
-                    result = false;
-                }
-            return result;
-        }
+        private bool ValidateSourceType(string sourceTypeString, out UpdateSource sourceType) =>
+            Enum.TryParse<UpdateSource>(sourceTypeString, true, out sourceType);
     }
 }
