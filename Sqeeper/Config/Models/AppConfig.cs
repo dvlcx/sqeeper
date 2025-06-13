@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace Sqeeper.Config
 {
     public class AppConfig
