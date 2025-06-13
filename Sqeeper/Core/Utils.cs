@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Sqeeper.Core.Utils;
+namespace Sqeeper.Core;
 
 public static class Utils
 {
