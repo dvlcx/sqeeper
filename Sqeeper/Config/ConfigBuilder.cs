@@ -84,9 +84,10 @@ namespace Sqeeper.Config
             var url = SettingOrDefault(opts, appGroupDefs, "url"); 
             var path = SettingOrDefault(opts, appGroupDefs, "path");
             var sourceType = SettingOrDefault(opts, appGroupDefs, "sourceType");
-            if (ValidateParam(name, url, nameof(url), ValidateUrl) |
-                ValidateParam(name, path, nameof(path), ValidatePath) |
-                ValidateParam<UpdateSource>(name, sourceType, nameof(path), ValidateSourceType, out var st))
+            if (!ValidateParam(name, url, nameof(url), ValidateUrl) |
+                !ValidateParam(name, path, nameof(path), ValidatePath) |
+                !ValidateParam<UpdateSource>(name, sourceType, nameof(path), ValidateSourceType, out var st) |
+                st != UpdateSource.GitRepository && !ValidateParam(name, version, nameof(version), ValidateVersion))
             {
                 _logger.ZLogError($"\"{name}\" skipped. Not enough params.");
                 return null;
@@ -139,6 +140,9 @@ namespace Sqeeper.Config
         private bool ValidatePath(string path) =>
             Directory.Exists(path.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
 
+        private bool ValidateVersion(string version) =>
+            Core.Utils.TryExtractVersion(version) is not null;
+        
         private bool ValidateSourceType(string sourceTypeString, out UpdateSource sourceType) =>
             Enum.TryParse<UpdateSource>(sourceTypeString, true, out sourceType);
     }
