@@ -1,29 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using ConsoleAppFramework;
 using Microsoft.Extensions.Logging;
-using Sqeeper.Config.Models;
+using Sqeeper.Config;
 using Sqeeper.Core;
 using ZLogger;
 
 namespace Sqeeper.Command
 {
 
-    public class UpdateCommand
+    public class UpdateCommand(
+        ConfigBuilder configBuilder,
+        LinkService linkService,
+        DownloadService downloadService,
+        ILogger<UpdateCommand> logger)
     {
-        private UpdateService _updateService;
-        private ILogger<UpdateCommand> _logger;
-
-        public UpdateCommand(UpdateService updateService, ILogger<UpdateCommand> logger)
-        {
-            _updateService = updateService;
-            _logger = logger;
-        }
+        private readonly DownloadService _downloadService = downloadService;
 
         /// <summary>
         ///     Runs through the config and updates all mentioned apps.
@@ -31,7 +20,32 @@ namespace Sqeeper.Command
         /// <param name="name">-n, Name of the app to update.</param>
         public async Task Update(string? name = null)
         {
-            await _updateService.Update(name);
+            var config =
+                (name is null ? configBuilder.IncludeApps() : configBuilder.IncludeApp(name))
+                .IncludeGroupDefaults().IncludeDefaults().Build();
+            if (config.Length == 0)
+                return;
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("a", "s");
+            
+            for (var i = 0; i < config.Length; i++)
+            {
+                var app = config.Get(i);
+                if (!await UpdateApp(app, httpClient))
+                    logger.ZLogError($"{app.Name} skipped.");
+            }
+        }
+
+        private async Task<bool> UpdateApp(AppConfig app, HttpClient httpClient)
+        {
+            var link = await linkService.TryGetDownloadLink(httpClient, app.Url, app.SourceType, app.Query, app.AntiQuery, app.Version);
+            if (link is null)
+                return false;
+
+            // DownloadFile(link, app.Path);
+            
+            return true;
         }
     }
 }
