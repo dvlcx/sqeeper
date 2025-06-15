@@ -25,21 +25,18 @@ namespace Sqeeper.Command
                 .IncludeGroupDefaults().IncludeDefaults().Build();
             if (config.Length == 0)
                 return;
-
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("a", "s");
             
             for (var i = 0; i < config.Length; i++)
             {
                 var app = config.Get(i);
-                if (!await UpdateApp(app, httpClient))
+                if (!await UpdateApp(app))
                     logger.ZLogError($"{app.Name} skipped.");
             }
         }
 
-        private async Task<bool> UpdateApp(AppConfig app, HttpClient httpClient)
+        private async Task<bool> UpdateApp(AppConfig app)
         {
-            var link = await linkService.TryGetDownloadLink(httpClient, app.Url, app.SourceType, app.Query, app.AntiQuery, app.Version);
+            var link = await linkService.TryGetDownloadLink(app.Url, app.SourceType, app.Query, app.AntiQuery, app.Version);
             if (link is null)
                 return false;
 

@@ -25,6 +25,7 @@ class Program
 
         var services = new ServiceCollection();
         services.AddSingleton(appConfigBuilder);
+        services.AddSingleton<HttpClientService>();
         services.AddSingleton<LinkService>();
         services.AddSingleton<DownloadService>();
         services.AddLogging(logger => GetLoggingBuilder(logger));

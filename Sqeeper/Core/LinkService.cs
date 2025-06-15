@@ -5,14 +5,23 @@ using ZLogger;
 
 namespace Sqeeper.Core;
 
-public class LinkService(ILogger<LinkService> logger)
+public class LinkService
 {
-    public async Task<string?> TryGetDownloadLink(HttpClient httpClient, string url, UpdateSource source, string[] query, string[] antiQuery, string currentVersion)
+    private readonly HttpClient _client;
+    private readonly ILogger<LinkService> _logger;
+    
+    public LinkService(HttpClientService httpClientService, ILogger<LinkService> logger)
+    {
+        _client = httpClientService.Instance;
+        _logger = logger;
+    }
+
+    public async Task<string?> TryGetDownloadLink(string url, UpdateSource source, string[] query, string[] antiQuery, string currentVersion)
     {
         var links = source switch {
-            UpdateSource.GitHubRelease => await GetLinksGithubRelease(httpClient, url),
-            UpdateSource.GitLabRelease => await GetLinksGitlabRelease(httpClient, url),
-            UpdateSource.DirectoryIndex => await GetLinksDirectoryIndex(httpClient, url),
+            UpdateSource.GitHubRelease => await GetLinksGithubRelease(url),
+            UpdateSource.GitLabRelease => await GetLinksGitlabRelease(url),
+            UpdateSource.DirectoryIndex => await GetLinksDirectoryIndex(url),
             UpdateSource.GitRepository => [url],
             _ => [],
         };
@@ -21,7 +30,7 @@ public class LinkService(ILogger<LinkService> logger)
             if (links[0].EndsWith(".git")) return links[0];
             else
             {
-                logger.LogError($"Not a git url: {url}.");
+                _logger.LogError($"Not a git url: {url}.");
                 return null;
             }
 
@@ -32,26 +41,26 @@ public class LinkService(ILogger<LinkService> logger)
         
         if (links.Count == 0)
         {
-            logger.ZLogError($"No links found at: {url}.");
+            _logger.ZLogError($"No links found at: {url}.");
             return null;
         }
         else if (links.Count > 1)
         {
-            logger.ZLogError($"More than one link found for {url}.");
+            _logger.ZLogError($"More than one link found for {url}.");
             return null;
         }
         return links[0];
     }
 
-    private Task<List<string>> GetLinksGithubRelease(HttpClient httpClient, string url) 
-        => GetReleaseLinks(httpClient, url, "assets", "browser_download_url");
+    private Task<List<string>> GetLinksGithubRelease(string url) 
+        => GetReleaseLinks(url, "assets", "browser_download_url");
 
-    private Task<List<string>> GetLinksGitlabRelease(HttpClient httpClient, string url) 
-        => GetReleaseLinks(httpClient, url, "assets.sources", "url");
+    private Task<List<string>> GetLinksGitlabRelease(string url) 
+        => GetReleaseLinks(url, "assets.sources", "url");
     
-    private async Task<List<string>> GetLinksDirectoryIndex(HttpClient httpClient, string url)
+    private async Task<List<string>> GetLinksDirectoryIndex(string url)
     {
-        var response = await httpClient.GetAsync(url);
+        var response = await _client.GetAsync(url);
         using var reader = new StreamReader(await response.Content.ReadAsStreamAsync());
         var text = await reader.ReadToEndAsync();
         
@@ -76,15 +85,15 @@ public class LinkService(ILogger<LinkService> logger)
            return lines.ToList();
         if (lines.Count() == 1 && lines.First().EndsWith('/'))
         {
-            lines = await GetLinksDirectoryIndex(httpClient, url + lines.First());
+            lines = await GetLinksDirectoryIndex(url + lines.First());
         }
         
         return lines.ToList();;
     }
     
-    private async Task<List<string>> GetReleaseLinks(HttpClient httpClient, string url, string assetsPath, string urlPropertyName)
+    private async Task<List<string>> GetReleaseLinks(string url, string assetsPath, string urlPropertyName)
     {
-        var text = await GetTextFromUrl(httpClient, url);
+        var text = await GetTextFromUrl(url);
 
         List<string> downloadUrls = [];
         using (JsonDocument doc = JsonDocument.Parse(text))
@@ -97,9 +106,9 @@ public class LinkService(ILogger<LinkService> logger)
         return downloadUrls;
     }
 
-    private async Task<string> GetTextFromUrl(HttpClient client, string url)
+    private async Task<string> GetTextFromUrl(string url)
     {
-        var response = await client.GetAsync(url);
+        var response = await _client.GetAsync(url);
         using var reader = new StreamReader(await response.Content.ReadAsStreamAsync());
         return await reader.ReadToEndAsync(); 
     }
