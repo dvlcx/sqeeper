@@ -5,14 +5,23 @@ using ZLogger;
 
 namespace Sqeeper.Command
 {
-
-    public class UpdateCommand(
-        ConfigBuilder configBuilder,
-        LinkService linkService,
-        DownloadService downloadService,
-        ILogger<UpdateCommand> logger)
+    public class UpdateCommand
     {
-        private readonly DownloadService _downloadService = downloadService;
+        private readonly DownloadService _downloadService;
+        private readonly ConfigBuilder _configBuilder;
+        private readonly LinkService _linkService;
+        private readonly ILogger<UpdateCommand> _logger;
+
+        public UpdateCommand(ConfigBuilder configBuilder,
+            LinkService linkService,
+            DownloadService downloadService,
+            ILogger<UpdateCommand> logger)
+        {
+            _configBuilder = configBuilder;
+            _linkService = linkService;
+            _logger = logger;
+            _downloadService = downloadService;
+        }
 
         /// <summary>
         ///     Runs through the config and updates all mentioned apps.
@@ -21,7 +30,7 @@ namespace Sqeeper.Command
         public async Task Update(string? name = null)
         {
             var config =
-                (name is null ? configBuilder.IncludeApps() : configBuilder.IncludeApp(name))
+                (name is null ? _configBuilder.IncludeApps() : _configBuilder.IncludeApp(name))
                 .IncludeGroupDefaults().IncludeDefaults().Build();
             if (config.Length == 0)
                 return;
@@ -30,13 +39,13 @@ namespace Sqeeper.Command
             {
                 var app = config.Get(i);
                 if (!await UpdateApp(app))
-                    logger.ZLogError($"{app.Name} skipped.");
+                    _logger.ZLogError($"{app.Name} skipped.");
             }
         }
 
         private async Task<bool> UpdateApp(AppConfig app)
         {
-            var link = await linkService.TryGetDownloadLink(app.Url, app.SourceType, app.Query, app.AntiQuery, app.Version);
+            var link = await _linkService.TryGetDownloadLink(app.Url, app.SourceType, app.Query, app.AntiQuery, app.Version);
             if (link is null)
                 return false;
 

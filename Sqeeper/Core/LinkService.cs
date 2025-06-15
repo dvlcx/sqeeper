@@ -84,9 +84,7 @@ public class LinkService
         if (lines.Count() > 1)
            return lines.ToList();
         if (lines.Count() == 1 && lines.First().EndsWith('/'))
-        {
             lines = await GetLinksDirectoryIndex(url + lines.First());
-        }
         
         return lines.ToList();;
     }
