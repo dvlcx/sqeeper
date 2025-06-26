@@ -16,37 +16,37 @@ public class LinkService
         _logger = logger;
     }
 
-    public async Task<string?> TryGetDownloadLink(string url, UpdateSource source, string[] query, string[] antiQuery, string currentVersion)
+    public async Task<string?> TryGetDownloadLink(AppConfig appConfig)
     {
-        var links = source switch {
-            UpdateSource.GitHubRelease => await GetLinksGithubRelease(url),
-            UpdateSource.GitLabRelease => await GetLinksGitlabRelease(url),
-            UpdateSource.DirectoryIndex => await GetLinksDirectoryIndex(url),
-            UpdateSource.GitRepository => [url],
+        var links = appConfig.SourceType switch {
+            UpdateSource.GitHubRelease => await GetLinksGithubRelease(appConfig.Url),
+            UpdateSource.GitLabRelease => await GetLinksGitlabRelease(appConfig.Url),
+            UpdateSource.DirectoryIndex => await GetLinksDirectoryIndex(appConfig.Url),
+            UpdateSource.GitRepository => [appConfig.Url],
             _ => [],
         };
         
-        if (source == UpdateSource.GitRepository)
+        if (appConfig.SourceType == UpdateSource.GitRepository)
             if (links[0].EndsWith(".git")) return links[0];
             else
             {
-                _logger.LogError($"Not a git url: {url}.");
+                _logger.LogError($"Not a git url: {appConfig.Url}.");
                 return null;
             }
 
         links = links
-            .Where(l => Utils.IsNewerVersion(currentVersion, Utils.TryExtractVersion(l)!))
-            .Where(l => query.All(l.Contains) && !antiQuery.All(l.Contains))
+            .Where(l => Utils.IsNewerVersion(appConfig.Version, Utils.TryExtractVersion(l)!))
+            .Where(l => appConfig.Query.All(l.Contains) && !appConfig.AntiQuery.All(l.Contains))
             .ToList();
         
         if (links.Count == 0)
         {
-            _logger.ZLogError($"No links found at: {url}.");
+            _logger.ZLogError($"No links found at: {appConfig.Url}.");
             return null;
         }
         else if (links.Count > 1)
         {
-            _logger.ZLogError($"More than one link found for {url}.");
+            _logger.ZLogError($"More than one link found for {appConfig.Url}.");
             return null;
         }
         return links[0];
