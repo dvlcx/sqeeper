@@ -43,13 +43,14 @@ namespace Sqeeper.Command
             }
         }
 
-        private async Task<bool> UpdateApp(AppConfig app)
+        private async Task<bool> UpdateApp(AppConfig appConfig)
         {
-            var link = await _linkService.TryGetDownloadLink(app.Url, app.SourceType, app.Query, app.AntiQuery, app.Version);
-            if (link is null)
-                return false;
-
-            // DownloadFile(link, app.Path);
+            var link = await _linkService.TryGetDownloadLink(appConfig);
+            if (link is null) return false;
+            
+            var downloadResult = await _downloadService.TryDownloadUpdate(appConfig);
+            if (!downloadResult) return false;
+            
             
             return true;
         }
