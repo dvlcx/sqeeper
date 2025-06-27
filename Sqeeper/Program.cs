@@ -11,7 +11,10 @@ namespace Sqeeper;
 
 class Program
 {
+    public static string CachePath { get; } =
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.cache/sqeeper/";
     private static readonly string _configPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.config/sqeeper/sqeeper.ini";
+    
     static void Main(string[] args)
     {
         if (!File.Exists(_configPath))
