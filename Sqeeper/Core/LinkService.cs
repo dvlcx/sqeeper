@@ -56,7 +56,7 @@ public class LinkService
         => GetReleaseLinks(url, "assets", "browser_download_url");
 
     private Task<List<string>> GetLinksGitlabRelease(string url) 
-        => GetReleaseLinks(url, "assets.sources", "url");
+        => GetReleaseLinks(url, "assets.links", "url");
     
     private async Task<List<string>> GetLinksDirectoryIndex(string url)
     {
