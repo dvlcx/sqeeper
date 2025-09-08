@@ -10,16 +10,16 @@ public class DownloadService
 {
     private readonly HttpClient _client;
     private readonly ILogger<DownloadService> _logger;
-    
+
     public DownloadService(HttpClientService httpClientService, ILogger<DownloadService> logger)
     {
         _client = httpClientService.Instance;
         _logger = logger;
     }
-    
+
     public async Task<bool> TryDownloadUpdate(AppConfig appConfig) =>
         appConfig.SourceType == UpdateSource.GitRepository ?
-            await TryDownloadGitUpdate(appConfig.Path, appConfig.Url) : 
+            await TryDownloadGitUpdate(appConfig.Path, appConfig.Url) :
             await TryDownloadFile(appConfig.Url, appConfig.Name);
 
     private async Task<bool> TryDownloadGitUpdate(string path, string url)
@@ -40,7 +40,7 @@ public class DownloadService
         await process.WaitForExitAsync();
         if (process.ExitCode == 128)
         {
-            _logger.ZLogWarning($"git pull failed at {path}. Not a git repo. Will try to git clone.");;
+            _logger.ZLogWarning($"git pull failed at {path}. Not a git repo. Will try to git clone."); ;
             psi.Arguments = $"-C {path} clone {url}";
             using var process2 = Process.Start(psi);
             if (process.ExitCode != 0)
