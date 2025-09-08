@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Sqeeper.Config.Models;
+using Sqeeper.Core.Links;
 using ZLogger;
 
 namespace Sqeeper.Config
@@ -99,9 +100,11 @@ namespace Sqeeper.Config
             //optional params
             var query = SettingOrDefault(opts, appGroupDefs, "query")?.Split(',') ?? [];
             var antiQuery = SettingOrDefault(opts, appGroupDefs, "antiQuery")?.Split(',') ?? [];
+            var queryablePropertyName = SettingOrDefault(opts, appGroupDefs, "queryablePropertyName");
+            var versionPropertyName = SettingOrDefault(opts, appGroupDefs, "versionPropertyName");
             var postScript = SettingOrDefault(opts, appGroupDefs, "postScript");
             
-            return new AppConfig(name, version!, url!, path!, query, antiQuery, keepOld, st, postScript);
+            return new AppConfig(name, version!, url!, path!, query, antiQuery, keepOld, st, queryablePropertyName, versionPropertyName, postScript);
         }
 
         private IConfigurationSection? SectionOrDefault(string sectionName) =>
@@ -141,7 +144,7 @@ namespace Sqeeper.Config
             Directory.Exists(path.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
 
         private bool ValidateVersion(string version) =>
-            Core.Utils.TryExtractVersion(version) is not null;
+            Utils.TryExtractVersion(version) is not null;
         
         private bool ValidateSourceType(string sourceTypeString, out UpdateSource sourceType) =>
             Enum.TryParse<UpdateSource>(sourceTypeString, true, out sourceType);

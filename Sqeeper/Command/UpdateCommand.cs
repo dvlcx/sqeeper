@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Sqeeper.Config;
+using Sqeeper.Config.Models;
 using Sqeeper.Core;
 using ZLogger;
 
@@ -47,9 +48,10 @@ namespace Sqeeper.Command
         {
             var link = await _linkService.TryGetDownloadLink(appConfig);
             if (link is null) return false;
-            
-            var downloadResult = await _downloadService.TryDownloadUpdate(appConfig);
-            if (!downloadResult) return false;
+            appConfig.Url = link;
+            Console.WriteLine(link);
+            // var downloadResult = await _downloadService.TryDownloadUpdate(appConfig);
+            // if (!downloadResult) return false;
             
             
             return true;

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Sqeeper.Config;
+using Sqeeper.Config.Models;
 using ZLogger;
 using static Sqeeper.Program;
 

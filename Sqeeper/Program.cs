@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using Sqeeper.Command;
 using Sqeeper.Config;
 using Sqeeper.Core;
+using Sqeeper.Core.Links;
+using Sqeeper.Core.Links.Abstract;
 using ZLogger;
 
 namespace Sqeeper;
@@ -29,6 +31,13 @@ class Program
         var services = new ServiceCollection();
         services.AddSingleton(appConfigBuilder);
         services.AddSingleton<HttpClientService>();
+        
+        services.AddTransient<ILinkStrategy, GitHubReleaseStrategy>();
+        services.AddTransient<ILinkStrategy, GitLabReleaseStrategy>();
+        services.AddTransient<ILinkStrategy, CodebergReleaseStrategy>();
+        services.AddTransient<ILinkStrategy, DirectoryIndexStrategy>();
+        services.AddTransient<ILinkStrategy, GitRepositoryStrategy>();
+        
         services.AddSingleton<LinkService>();
         services.AddSingleton<DownloadService>();
         services.AddLogging(logger => GetLoggingBuilder(logger));

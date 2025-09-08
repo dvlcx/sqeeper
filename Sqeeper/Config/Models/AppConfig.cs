@@ -1,18 +1,14 @@
-namespace Sqeeper.Config
+namespace Sqeeper.Config.Models
 {
-    public class AppConfig
+    public class AppConfig : ILinkConfig
     {
         public string Name { get; set; }
-        public string Version { get; set; }
-        public string Url { get; set; }
         public string Path { get; set; }
-        public string[] Query { get; set; }
-        public string[] AntiQuery { get; set; }
         public bool KeepOld { get; set; }
-        public UpdateSource SourceType { get; set; }
         public string? PostScript { get; set; }
 
-        public AppConfig(string name, string version, string url, string path, string[] query, string[] antiQuery, bool keepOld, UpdateSource sourceType, string? postScript)
+        public AppConfig(string name, string version, string url, string path, string[] query, string[] antiQuery,
+            bool keepOld, UpdateSource sourceType, string? queryablePropertyName, string? versionPropertyName, string? postScript)
         {
             Name = name;
             Version = version;
@@ -22,6 +18,8 @@ namespace Sqeeper.Config
             AntiQuery = antiQuery;
             KeepOld = keepOld;
             SourceType = sourceType;
+            QueryablePropertyName = queryablePropertyName;
+            VersionPropertyName = versionPropertyName;
             PostScript = postScript;
         }
     }
@@ -30,6 +28,7 @@ namespace Sqeeper.Config
     {
         GitHubRelease,
         GitLabRelease,
+        CodebergRelease,
         GitRepository,
         DirectoryIndex
     }

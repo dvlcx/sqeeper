@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Sqeeper.Core;
+namespace Sqeeper.Core.Links;
 
 public static class Utils
 {
@@ -51,4 +51,11 @@ public static class Utils
         
         return lines.Where(x => x.Contains(maxVersion)).ToArray();
     }
+    
+    public static bool VersionValidate(string currentVersion, string foundVersion) =>
+        Utils.IsNewerVersion(currentVersion, Utils.TryExtractVersion(foundVersion)!);
+    
+    public static bool QueryValidate(string input, string[] query, string[] antiQuery) =>
+        query.All(input.Contains) && 
+        (antiQuery.Length > 0 ? !antiQuery.Any(input.Contains) : true);
 }
