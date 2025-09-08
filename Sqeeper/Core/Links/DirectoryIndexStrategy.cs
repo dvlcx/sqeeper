@@ -5,7 +5,7 @@ namespace Sqeeper.Core.Links;
 
 public class DirectoryIndexStrategy : ILinkStrategy
 {
-    protected readonly HttpClient _client;
+    private readonly HttpClient _client;
 
     public DirectoryIndexStrategy(HttpClientService httpClientService)
     {
