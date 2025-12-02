@@ -32,7 +32,6 @@ public class DirectoryIndexStrategy : ILinkStrategy
         var text = await reader.ReadToEndAsync();
         
         Console.WriteLine(text);
-        List<string> downloadUrls = [];
         IEnumerable<string> lines = text.Split('\n');
         
         //find hrefs

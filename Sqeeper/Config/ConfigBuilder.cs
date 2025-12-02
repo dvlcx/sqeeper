@@ -43,30 +43,23 @@ namespace Sqeeper.Config
 
         public ConfigArray Build()
         {
-            try
+            List<AppConfig> result = [];
+
+            if (_appsConfig is null)
             {
-                List<AppConfig> result = [];
-
-                if (_appsConfig is null)
-                {
-                    Console.WriteLine($"No apps found in config.");
-                    return new ConfigArray([]);
-                }
-
-                foreach (var app in _appsConfig)
-                {
-                    var appConfig = ComposeAppConfig(app);
-                    if (appConfig is null)
-                        continue;
-                    result.Add(appConfig);
-                }
-
-                return new ConfigArray(result.ToArray());
+                Console.WriteLine($"No apps found in config.");
+                return new ConfigArray([]);
             }
-            catch (Exception)
+
+            foreach (var app in _appsConfig)
             {
-                throw;
+                var appConfig = ComposeAppConfig(app);
+                if (appConfig is null)
+                    continue;
+                result.Add(appConfig);
             }
+
+            return new ConfigArray(result.ToArray());
         }
 
         private AppConfig? ComposeAppConfig(IConfigurationSection appSection)
@@ -82,17 +75,17 @@ namespace Sqeeper.Config
             var url = SettingOrDefault(opts, appGroupDefs, "url");
             var path = SettingOrDefault(opts, appGroupDefs, "path");
             var sourceType = SettingOrDefault(opts, appGroupDefs, "sourceType");
-            if (!ValidateParam(name, url, nameof(url), ValidateUrl) |
-                !ValidateParam(name, path, nameof(path), ValidatePath) |
-                !ValidateParam<UpdateSource>(name, sourceType, nameof(path), ValidateSourceType, out var st) |
-                st != UpdateSource.GitRepository && !ValidateParam(name, version, nameof(version), ValidateVersion))
+            if (!ConfigVaidators.ValidateParam(name, url, nameof(url), ConfigVaidators.ValidateUrl) ||
+                !ConfigVaidators.ValidateParam(name, path, nameof(path), ConfigVaidators.ValidatePath) ||
+                !ConfigVaidators.ValidateParam<UpdateSource>(name, sourceType, nameof(path), ConfigVaidators.ValidateSourceType, out var st) ||
+                st != UpdateSource.GitRepository && !ConfigVaidators.ValidateParam(name, version, nameof(version), ConfigVaidators.ValidateVersion))
             {
                 Console.WriteLine($"\"{name}\" skipped. Not enough params.");
                 return null;
             }
 
             //required params with default values
-            var keepOld = bool.TryParse(SettingOrDefault(opts, appGroupDefs, "keepOld"), out var ko) ? ko : true;
+            var keepOld = !bool.TryParse(SettingOrDefault(opts, appGroupDefs, "keepOld"), out var ko) || ko;
 
             //optional params
             var query = SettingOrDefault(opts, appGroupDefs, "query")?.Split(',') ?? [];
@@ -111,39 +104,5 @@ namespace Sqeeper.Config
             appSection.FirstOrDefault(o => o.Key == settingName)?.Value ??
             groupSection?.FirstOrDefault(o => o.Key == settingName)?.Value ??
             _defaults?.FirstOrDefault(o => o.Key == settingName)?.Value;
-
-        private delegate T3 Func<in T1, T2, out T3>(T1 input, out T2 output);
-        private bool ValidateParam<T>(string appName, string? param, string paramName, Func<string, T, bool> validator, out T? result)
-        {
-            result = default;
-
-            if (param is null)
-            {
-                Console.WriteLine($"\"{appName}\" {paramName} is missing.");
-                return false;
-            }
-            if (!validator(param, out result))
-            {
-                Console.WriteLine($"\"{appName}\" {paramName} is invalid.");
-                return false;
-            }
-
-            return true;
-        }
-
-        private bool ValidateParam(string appName, string? param, string paramName, Func<string, bool> validator) =>
-            ValidateParam<bool>(appName, param, paramName, (string input, out bool output) => (output = validator(input)), out _);
-
-        private bool ValidateUrl(string url) =>
-            Uri.TryCreate(url, UriKind.Absolute, out _);
-
-        private bool ValidatePath(string path) =>
-            Directory.Exists(path.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
-
-        private bool ValidateVersion(string version) =>
-            Utils.TryExtractVersion(version) is not null;
-
-        private bool ValidateSourceType(string sourceTypeString, out UpdateSource sourceType) =>
-            Enum.TryParse<UpdateSource>(sourceTypeString, true, out sourceType);
     }
 }

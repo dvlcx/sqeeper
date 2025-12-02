@@ -57,5 +57,5 @@ public static class Utils
     
     public static bool QueryValidate(string input, string[] query, string[] antiQuery) =>
         query.All(input.Contains) && 
-        (antiQuery.Length > 0 ? !antiQuery.Any(input.Contains) : true);
+        (antiQuery.Length <= 0 || !antiQuery.Any(input.Contains));
 }

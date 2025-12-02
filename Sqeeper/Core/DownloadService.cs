@@ -57,8 +57,9 @@ public class DownloadService
             Console.WriteLine($"{url} is not a file link.");
             return false;
         }
-        using (var fs = new FileStream(CachePath + fileName, FileMode.CreateNew))
-            await response.Content.CopyToAsync(fs);
+
+        await using var fs = new FileStream(CachePath + fileName, FileMode.CreateNew);
+        await response.Content.CopyToAsync(fs);
         return true;
     }
 }

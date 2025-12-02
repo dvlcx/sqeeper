@@ -19,7 +19,7 @@ class Program
     {
         if (!File.Exists(_configPath))
         {
-
+            //createdefault
         }
 
         var appConfigBuilder = new ConfigBuilder(

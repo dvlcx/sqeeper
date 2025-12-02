@@ -3,7 +3,7 @@ namespace Sqeeper.Config.Models
     public class ConfigArray : IConfigArray
     {
         public int Length { get => _appConfigs.Length; }
-        private AppConfig[] _appConfigs;
+        private readonly AppConfig[] _appConfigs;
 
         public ConfigArray(AppConfig[] appConfigs)
         {
