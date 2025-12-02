@@ -40,6 +40,6 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          dotnet sonarscanner begin /k:"dvlcx_sqeeper" /o:"dvlcx" /d:sonar.token="$SONAR_TOKEN"
+          dotnet sonarscanner begin /k:"dvlcx_sqeeper" /o:"dvlcx" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
           dotnet build
-          dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
+          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
