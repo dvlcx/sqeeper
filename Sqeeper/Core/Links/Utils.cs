@@ -41,11 +41,9 @@ public static class Utils
         for (var i = 1; i < lines.Length; i++)
         {
             var version = TryExtractVersion(lines[i]);
-            if (maxVersion is null)
-                maxVersion = version;
-            else if (version is null)
+            if (version is null)
                 continue;
-            else if (IsNewerVersion(maxVersion, version))
+            if (maxVersion is null || IsNewerVersion(maxVersion, version))
                 maxVersion = version;
         }
         
