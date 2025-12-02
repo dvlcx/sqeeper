@@ -14,34 +14,32 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: 17
-          distribution: 'zulu' # Alternative distribution options are available.
-      - uses: actions/checkout@v4
+          distribution: 'zulu'
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: Cache SonarQube Cloud packages
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+      - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
-          path: ~\sonar\cache
+          path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-      - name: Cache SonarQube Cloud scanner
+      - name: Cache SonarQube scanner
         id: cache-sonar-scanner
         uses: actions/cache@v4
         with:
-          path: ${{ runner.temp }}\scanner
+          path: ~/.dotnet/tools
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
-      - name: Install SonarQube Cloud scanner
+      - name: Install SonarQube scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        shell: bash
         run: |
-          New-Item -Path ${{ runner.temp }}\scanner -ItemType Directory
-          dotnet tool update dotnet-sonarscanner --tool-path ${{ runner.temp }}\scanner
+          dotnet tool update dotnet-sonarscanner --global
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        shell: bash
         run: |
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"dvlcx_sqeeper" /o:"dvlcx" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          dotnet sonarscanner begin /k:"dvlcx_sqeeper" /o:"dvlcx" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
           dotnet build
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
