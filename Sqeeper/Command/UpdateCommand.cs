@@ -1,8 +1,6 @@
-using Microsoft.Extensions.Logging;
 using Sqeeper.Config;
 using Sqeeper.Config.Models;
 using Sqeeper.Core;
-using ZLogger;
 
 namespace Sqeeper.Command
 {
@@ -11,16 +9,13 @@ namespace Sqeeper.Command
         private readonly DownloadService _downloadService;
         private readonly ConfigBuilder _configBuilder;
         private readonly LinkService _linkService;
-        private readonly ILogger<UpdateCommand> _logger;
 
         public UpdateCommand(ConfigBuilder configBuilder,
             LinkService linkService,
-            DownloadService downloadService,
-            ILogger<UpdateCommand> logger)
+            DownloadService downloadService)
         {
             _configBuilder = configBuilder;
             _linkService = linkService;
-            _logger = logger;
             _downloadService = downloadService;
         }
 
@@ -35,12 +30,12 @@ namespace Sqeeper.Command
                 .IncludeGroupDefaults().IncludeDefaults().Build();
             if (config.Length == 0)
                 return;
-            
+
             for (var i = 0; i < config.Length; i++)
             {
                 var app = config.Get(i);
                 if (!await UpdateApp(app))
-                    _logger.ZLogError($"{app.Name} skipped.");
+                    Console.WriteLine($"{app.Name} skipped.");
             }
         }
 
@@ -52,8 +47,8 @@ namespace Sqeeper.Command
             Console.WriteLine(link);
             // var downloadResult = await _downloadService.TryDownloadUpdate(appConfig);
             // if (!downloadResult) return false;
-            
-            
+
+
             return true;
         }
     }
